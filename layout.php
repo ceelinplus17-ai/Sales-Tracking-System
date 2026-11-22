@@ -33,7 +33,7 @@ function page_top($title, $showNav = true) {
       <a href="welcome.php" class="<?= $current === 'welcome.php' ? 'active' : '' ?>">Sales Ledger</a>
       <a href="create.php" class="<?= $current === 'create.php' ? 'active' : '' ?>">+ Record Sale</a>
       <span class="user-badge" title="Signed in cashier">🐾 <?= e($_SESSION['first_name'] ?? $_SESSION['full_name']) ?></span>
-      <a href="welcome.php?logout=1" class="nav-out">Log out</a>
+      <a href="logout.php" class="nav-out">Log out</a>
     </nav>
     <?php endif; ?>
   </div>

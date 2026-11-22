@@ -2,6 +2,13 @@
 CREATE DATABASE IF NOT EXISTS yarnshop;
 USE yarnshop;
 
+CREATE TABLE IF NOT EXISTS users (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  full_name     VARCHAR(100) NOT NULL,
+  username      VARCHAR(50)  NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS sales (
   id             INT AUTO_INCREMENT PRIMARY KEY,
   customer_name  VARCHAR(100)  NOT NULL,

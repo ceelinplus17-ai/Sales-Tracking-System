@@ -27,7 +27,7 @@ function db() {
 }
 
 function require_login() {
-    if (empty($_SESSION['full_name'])) {
+    if (empty($_SESSION['user_id']) || empty($_SESSION['full_name'])) {
         header('Location: index.php');
         exit;
     }

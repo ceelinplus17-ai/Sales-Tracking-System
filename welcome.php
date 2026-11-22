@@ -2,11 +2,6 @@
 require_once 'config.php';
 require_once 'layout.php';
 
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: index.php');
-    exit;
-}
 require_login();
 
 $db = db();
@@ -62,7 +57,7 @@ page_top('Sales Dashboard');
   <article class="stat-card">
     <div class="stat-head">
       <span class="stat-label">Total Orders</span>
-      <span class="stat-icon">🧾</span>
+
     </div>
     <div class="stat-num"><?= (int)$sum['orders'] ?></div>
     <div class="stat-foot"><?= (int)$sum['units_sold'] ?> total items sold</div>
@@ -71,7 +66,7 @@ page_top('Sales Dashboard');
   <article class="stat-card accent-blue">
     <div class="stat-head">
       <span class="stat-label">Gross Revenue</span>
-      <span class="stat-icon">💰</span>
+
     </div>
     <div class="stat-num"><?= peso($sum['revenue']) ?></div>
     <div class="stat-foot">All recorded yarn sales</div>
@@ -80,7 +75,7 @@ page_top('Sales Dashboard');
   <article class="stat-card accent-green">
     <div class="stat-head">
       <span class="stat-label">Collected (Paid)</span>
-      <span class="stat-icon">✅</span>
+  
     </div>
     <div class="stat-num"><?= peso($sum['collected']) ?></div>
     <div class="stat-foot">Settled in cash / register</div>
@@ -89,7 +84,7 @@ page_top('Sales Dashboard');
   <article class="stat-card accent-yellow">
     <div class="stat-head">
       <span class="stat-label">Unpaid Tabs (Pending)</span>
-      <span class="stat-icon">⏳</span>
+  
     </div>
     <div class="stat-num"><?= peso($sum['pending']) ?></div>
     <div class="stat-foot">Awaiting customer payment</div>
@@ -199,7 +194,7 @@ page_top('Sales Dashboard');
         $pPrice = $products[$pName];
     ?>
       <div class="catalog-item">
-        <span class="item-name">🧶 <?= e($pName) ?></span>
+        <span class="item-name"><?= e($pName) ?></span>
         <span class="item-price"><?= peso($pPrice) ?></span>
       </div>
     <?php
