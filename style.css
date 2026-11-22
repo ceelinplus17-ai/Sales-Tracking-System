@@ -1,0 +1,905 @@
+/* ==========================================================================
+   Woodstock Yarn Shop — Peanuts & Snoopy Comic-Strip Sales Tracking System
+   Palette inspired by Charles Schulz comic panels & user artwork:
+   - Paper Cream: #FFFDF7  |  Graph-Grid Blush: #FCEEE9
+   - Doghouse Red: #E62E2D |  Woodstock Yellow: #FFD91A
+   - Peanuts Sky: #6EC6FF  |  Comic Ink Black: #141414
+   ========================================================================== */
+
+:root {
+  --paper: #FFFDF7;
+  --cream: #FBF6EA;
+  --white: #FFFFFF;
+  --ink: #141414;
+  --red: #E62E2D;
+  --red-dark: #B81D1C;
+  --yellow: #FFD91A;
+  --yellow-soft: #FFF5B8;
+  --blue: #6EC6FF;
+  --blue-soft: #E5F5FF;
+  --green-soft: #DCFCE7;
+  --green-ink: #14532D;
+  --border: 3px solid var(--ink);
+  --border-thin: 2px solid var(--ink);
+  --shadow: 5px 5px 0px var(--ink);
+  --shadow-sm: 3px 3px 0px var(--ink);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.55;
+  /* Subtle warm craft-notebook grid inspired by the Snoopy yarn illustration */
+  background-color: var(--cream);
+  background-image:
+    linear-gradient(to right, rgba(230, 46, 45, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(230, 46, 45, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+h1, h2, h3, .brand-title, .stat-num, .btn, .comic-tag {
+  font-family: 'Fredoka', 'Segoe UI', sans-serif;
+}
+
+/* ---------- Top Peanuts Color-Block Ribbon ---------- */
+.peanuts-top-ribbon {
+  height: 10px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--blue) 0 80px,
+    var(--red) 80px 160px,
+    var(--yellow) 160px 240px
+  );
+  border-bottom: var(--border-thin);
+}
+
+/* ---------- Header / Navbar ---------- */
+.topbar {
+  background: var(--white);
+  border-bottom: var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-inner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.brand-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: var(--border);
+  box-shadow: 2px 2px 0 var(--ink);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-avatar img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.brand-text { display: flex; flex-direction: column; }
+.brand-title { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: -0.01em; }
+.brand-sub {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 15px;
+  color: var(--red);
+  letter-spacing: 0.03em;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.main-nav a {
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  transition: all 0.12s ease;
+}
+
+.main-nav a:hover {
+  background: var(--yellow-soft);
+  border-color: var(--ink);
+}
+
+.main-nav a.active {
+  background: var(--yellow);
+  border-color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.user-badge {
+  background: var(--blue-soft);
+  border: var(--border-thin);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.main-nav a.nav-out {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+.main-nav a.nav-out:hover {
+  background: var(--red-dark);
+}
+
+/* ---------- Main Container ---------- */
+.wrap {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+  flex: 1;
+}
+
+/* ---------- Comic Tags & Speech Bubbles ---------- */
+.comic-tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border: var(--border-thin);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.comic-tag.yellow-tag {
+  background: var(--yellow);
+}
+
+/* ---------- Hero Comic Panel (Dashboard) ---------- */
+.hero-strip {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  align-items: center;
+  gap: 20px;
+  background: var(--red);
+  color: var(--white);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 22px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.hero-copy h1 {
+  font-size: 34px;
+  line-height: 1.12;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.hero-copy p {
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.96;
+  max-width: 48ch;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.hero-illustration {
+  background: var(--blue);
+  border: var(--border);
+  border-radius: 16px;
+  box-shadow: 4px 4px 0 var(--ink);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-illustration img {
+  width: 100%;
+  max-height: 210px;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 820px) {
+  .hero-strip { grid-template-columns: 1fr; }
+  .hero-illustration img { max-height: 230px; }
+}
+
+/* ---------- Flash Notice ---------- */
+.flash {
+  background: var(--yellow);
+  border: var(--border);
+  box-shadow: var(--shadow-sm);
+  border-radius: 14px;
+  padding: 12px 18px;
+  margin-bottom: 22px;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+/* ---------- KPI Stats Grid ---------- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .stats-grid { grid-template-columns: 1fr; }
+}
+
+.stat-card {
+  background: var(--white);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.stat-card.accent-blue   { background: var(--blue-soft); }
+.stat-card.accent-green  { background: var(--green-soft); }
+.stat-card.accent-yellow { background: var(--yellow-soft); }
+
+.stat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #333;
+}
+
+.stat-icon { font-size: 20px; }
+
+.stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 2px 0;
+}
+
+.stat-foot {
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+  margin-top: 4px;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--white);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.card.narrow {
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.card h1 { font-size: 30px; line-height: 1.15; margin-bottom: 6px; }
+.card h2 { font-size: 23px; line-height: 1.2; }
+.subtext { font-size: 13px; color: #555; font-weight: 600; margin-top: 2px; }
+.lead { font-size: 15px; color: #444; margin-bottom: 18px; }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+/* ---------- Toolbar, Filter Pills & Search ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-pills {
+  display: inline-flex;
+  background: var(--cream);
+  border: var(--border-thin);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.filter-btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.filter-btn.active {
+  background: var(--ink);
+  color: var(--yellow);
+}
+
+#search {
+  width: 250px;
+  margin-top: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+/* ---------- Sales Ledger Table ---------- */
+.table-scroll {
+  overflow-x: auto;
+  border: var(--border-thin);
+  border-radius: 14px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+th {
+  background: var(--ink);
+  color: var(--yellow);
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+td {
+  padding: 12px 14px;
+  border-bottom: 1.5px solid #e5e7eb;
+  font-size: 14px;
+}
+
+tbody tr:nth-child(even) td { background: #FAFBFD; }
+tbody tr:hover td { background: var(--yellow-soft); }
+
+tfoot td {
+  background: var(--cream);
+  border-top: var(--border-thin);
+  border-bottom: none;
+  font-size: 15px;
+}
+
+.num { text-align: right; }
+
+.receipt-id {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--cream);
+  border: 1.5px solid var(--ink);
+  border-radius: 6px;
+  padding: 1px 7px;
+}
+
+/* ---------- Status Pills & Row Buttons ---------- */
+.pill {
+  display: inline-block;
+  padding: 3px 12px;
+  border: var(--border-thin);
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.pill.paid { background: var(--blue); color: var(--ink); }
+.pill.pending { background: var(--yellow); color: var(--ink); }
+
+.actions { white-space: nowrap; }
+.action-btn {
+  display: inline-block;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  background: var(--white);
+  border: var(--border-thin);
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-right: 4px;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.action-btn:hover { background: var(--blue-soft); transform: translateY(-1px); }
+.action-btn.edit:hover { background: var(--yellow); }
+.action-btn.danger { border-color: var(--red); color: var(--red); }
+.action-btn.danger:hover { background: var(--red); color: var(--white); }
+form.inline { display: inline; margin: 0; }
+
+/* ---------- Bottom Dashboard Grid (Catalogue + Snoopy Tip) ---------- */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 820px) {
+  .bottom-grid { grid-template-columns: 1fr; }
+}
+
+.star-seller-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--yellow-soft);
+  border: var(--border-thin);
+  border-radius: 14px;
+  padding: 6px 12px;
+}
+
+.star-seller-badge img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.star-seller-badge small {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--red);
+}
+
+.star-seller-badge strong {
+  font-size: 13px;
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .catalog-grid { grid-template-columns: 1fr; }
+}
+
+.catalog-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--cream);
+  border: var(--border-thin);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.item-price {
+  background: var(--white);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-weight: 800;
+  color: var(--red);
+}
+
+.mascot-card {
+  text-align: center;
+  background: var(--paper);
+}
+
+.mascot-card img {
+  width: 170px;
+  max-width: 100%;
+  margin: 0 auto 10px;
+  display: block;
+}
+
+.mascot-card h3 { font-size: 21px; margin-bottom: 6px; }
+.mascot-card p { font-size: 14px; color: #444; margin-bottom: 16px; }
+
+/* ---------- Auth / Login Comic Split Panel ---------- */
+.auth-panel {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  background: var(--white);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 24px;
+  overflow: hidden;
+  max-width: 920px;
+  margin: 12px auto;
+}
+
+@media (max-width: 780px) {
+  .auth-panel { grid-template-columns: 1fr; }
+}
+
+.auth-art {
+  background: var(--paper);
+  border-right: var(--border);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+}
+
+@media (max-width: 780px) {
+  .auth-art { border-right: none; border-bottom: var(--border); }
+}
+
+.auth-snoopy-img {
+  width: 210px;
+  max-width: 100%;
+  border-radius: 16px;
+  border: var(--border-thin);
+  margin: 10px 0;
+}
+
+.speech-bubble {
+  position: relative;
+  background: var(--yellow-soft);
+  border: var(--border-thin);
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 18px;
+  line-height: 1.3;
+  margin: 8px 0 14px;
+}
+
+.auth-gang-strip {
+  width: 100%;
+  max-height: 110px;
+  object-fit: cover;
+  object-position: center 42%;
+  border-radius: 12px;
+  border: var(--border-thin);
+}
+
+.auth-form-box {
+  padding: 30px 28px;
+}
+
+.doghouse-roof-badge {
+  display: inline-block;
+  background: var(--red);
+  color: var(--white);
+  font-family: 'Fredoka', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border: var(--border-thin);
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.auth-form-box h1 {
+  font-size: 30px;
+  margin-bottom: 4px;
+}
+
+/* ---------- Create / Update Two-Column Form Layout ---------- */
+.form-layout {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 22px;
+  align-items: start;
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+@media (max-width: 760px) {
+  .form-layout { grid-template-columns: 1fr; }
+}
+
+.side-mascot-card {
+  text-align: center;
+  background: var(--blue-soft);
+}
+
+.side-mascot-card img {
+  width: 180px;
+  max-width: 100%;
+  border-radius: 14px;
+  border: var(--border-thin);
+  background: var(--white);
+  margin: 0 auto 12px;
+  display: block;
+}
+
+.side-mascot-card h3 { font-size: 20px; margin-bottom: 6px; }
+.side-mascot-card p { font-size: 14px; color: #333; }
+
+/* ---------- Forms & Inputs ---------- */
+form label {
+  display: block;
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+input, select {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  padding: 10px 13px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--white);
+  border: var(--border-thin);
+  border-radius: 12px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--blue);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 480px) {
+  .row { grid-template-columns: 1fr; }
+}
+
+.receipt-preview-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--yellow-soft);
+  border: var(--border-thin);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin: 4px 0 16px;
+  font-weight: 700;
+}
+
+.receipt-preview-box strong {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 24px;
+  color: var(--red);
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 10px 22px;
+  border: var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.btn-red {
+  background: var(--red);
+  color: var(--white);
+  width: 100%;
+}
+
+.btn-yellow {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.btn-white {
+  background: var(--white);
+  color: var(--ink);
+}
+
+.back-btn {
+  display: inline-block;
+  margin-top: 18px;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.back-btn:hover { color: var(--red); }
+
+.error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: var(--border-thin);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.empty {
+  padding: 20px 8px 6px;
+  text-align: center;
+  font-weight: 700;
+  color: #444;
+}
+
+/* ---------- View Receipt Card ---------- */
+.receipt-card {
+  background: var(--paper);
+}
+
+.receipt-header {
+  text-align: center;
+}
+
+.receipt-stamp {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  margin: 0 auto 8px;
+  display: block;
+}
+
+.receipt-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.receipt-divider {
+  border-top: 2px dashed var(--ink);
+  margin: 18px 0;
+}
+
+.receipt-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+}
+
+.receipt-row dt { color: #555; font-weight: 600; }
+.receipt-row dd { font-weight: 800; }
+
+.receipt-grand-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--yellow);
+  border: var(--border-thin);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-weight: 800;
+}
+
+.receipt-grand-total strong {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 26px;
+}
+
+.receipt-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* ---------- Footer with Charlie Brown Zig-Zag ---------- */
+.foot {
+  background: var(--yellow);
+  color: var(--ink);
+  border-top: var(--border);
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.foot-zig-zag {
+  height: 12px;
+  width: 100%;
+  background-image: linear-gradient(135deg, var(--ink) 25%, transparent 25%),
+                    linear-gradient(225deg, var(--ink) 25%, transparent 25%);
+  background-position: 0 0;
+  background-size: 24px 12px;
+}
+
+.foot-inner p {
+  padding: 14px 16px;
+}
+
+@media print {
+  .peanuts-top-ribbon, .topbar, .foot, .receipt-actions, .back-btn { display: none !important; }
+  body { background: #fff; }
+  .card { box-shadow: none; border: 2px solid #000; }
+}
