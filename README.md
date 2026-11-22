@@ -1,3 +1,4 @@
-# Websys-Final-Project
-a subject requirement - Sales Tracking System
+# Sales Tracking System
+a subject requirement for the course of Bachelor of Science in Information Technology
+
 
