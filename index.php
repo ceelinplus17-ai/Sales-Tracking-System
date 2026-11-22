@@ -1,57 +1,240 @@
 <?php
-require_once 'config.php';
+require_once 'config.php'; // starts the session + provides db()
 require_once 'layout.php';
+$conn = db();
 
-if (!empty($_SESSION['full_name'])) { header('Location: welcome.php'); exit; }
+// Redirect if already logged in
+if (!empty($_SESSION['user_id'])) {
+    header('Location: welcome.php');
+    exit;
+}
 
+$activeTab = 'login';
 $error = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $last_name   = trim($_POST['Last_name'] ?? '');
-    $first_name  = trim($_POST['First_name'] ?? '');
-    $middle_name = trim($_POST['Middle_name'] ?? '');
-    $email       = trim($_POST['email'] ?? '');
-    $password    = $_POST['password'] ?? '';
+$success = '';
 
-    if ($last_name === '' || $first_name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 6) {
-        $error = 'Please fill all required fields correctly (password min 6 characters).';
-    } else {
-        $_SESSION['last_name']   = $last_name;
-        $_SESSION['first_name']  = $first_name;
-        $_SESSION['middle_name'] = $middle_name;
-        $_SESSION['full_name']   = trim("$first_name $middle_name $last_name");
-        header('Location: welcome.php');
-        exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? 'login';
+
+    // --- HANDLE LOGIN ---
+    if ($action === 'login') {
+        $activeTab = 'login';
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        if ($username === '' || $password === '') {
+            $error = 'Please enter both username and password.';
+        } else {
+            $stmt = $conn->prepare('SELECT id, full_name, username, password_hash FROM users WHERE username = ? LIMIT 1');
+            $stmt->bind_param('s', $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $user = $result->fetch_assoc();
+            $stmt->close();
+
+            if ($user && password_verify($password, $user['password_hash'])) {
+                session_regenerate_id(true);
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'];
+
+                header('Location: welcome.php');
+                exit;
+            } else {
+                $error = 'Invalid username or password.';
+            }
+        }
+    }
+
+    // --- HANDLE REGISTRATION ---
+    if ($action === 'register') {
+        $activeTab = 'register';
+        $fullName = trim($_POST['full_name'] ?? '');
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+
+        if ($fullName === '' || $username === '' || $password === '') {
+            $error = 'All fields are required to create an account.';
+        } elseif (strlen($password) < 6) {
+            $error = 'Password must be at least 6 characters long.';
+        } elseif ($password !== $confirmPassword) {
+            $error = 'Passwords do not match.';
+        } else {
+            // Check if username already exists
+            $checkStmt = $conn->prepare('SELECT id FROM users WHERE username = ? LIMIT 1');
+            $checkStmt->bind_param('s', $username);
+            $checkStmt->execute();
+            $checkStmt->store_result();
+
+            if ($checkStmt->num_rows > 0) {
+                $error = 'That username is already taken. Try logging in instead.';
+                $checkStmt->close();
+            } else {
+                $checkStmt->close();
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+                $insertStmt = $conn->prepare('INSERT INTO users (full_name, username, password_hash) VALUES (?, ?, ?)');
+                $insertStmt->bind_param('sss', $fullName, $username, $passwordHash);
+
+                if ($insertStmt->execute()) {
+                    session_regenerate_id(true);
+                    $_SESSION['user_id'] = $insertStmt->insert_id;
+                    $_SESSION['username'] = $username;
+                    $_SESSION['full_name'] = $fullName;
+                    $insertStmt->close();
+
+                    header('Location: welcome.php');
+                    exit;
+                } else {
+                    $error = 'Something went wrong while creating your account.';
+                    $insertStmt->close();
+                }
+            }
+        }
     }
 }
-page_top('Sign in', false);
+
+page_top('Sign In & Register', false);
 ?>
 <section class="auth-panel">
+  <!-- Left Comic Panel: Snoopy & Peanuts Gang Artwork -->
   <div class="auth-art">
-    <span class="comic-tag">EST. 1950 · YARN &amp; NOTIONS</span>
+    <span class="comic-tag">EST. 2007 · YARN &amp; NOTIONS</span>
     <img src="assets/snoopy-yarn-love.png" alt="Snoopy tangled in red yarn" class="auth-snoopy-img">
-    <div class="speech-bubble">
-      “Every great sweater starts with one skein—and a neat sales receipt!”
+    <div class="speech-bubble" id="snoopy-quote">
+      <?= $activeTab === 'register'
+        ? '“New to the shop? Grab a skein and register your staff badge!”'
+        : '“Every great sweater starts with one skein—and a neat sales receipt!”' ?>
     </div>
     <img src="assets/peanuts-stripes.png" alt="Peanuts gang" class="auth-gang-strip">
   </div>
 
+  <!-- Right Comic Panel: Log In / Register Forms -->
   <div class="auth-form-box">
-    <div class="doghouse-roof-badge">🏠 DOGHOUSE POS</div>
-    <h1>Open the Doghouse</h1>
-    <p class="lead">Sign in to manage yarn orders, track revenue, and check unpaid tabs.</p>
+    <div class="doghouse-roof-badge"> SNOOPY'S HOUSE </div>
+    <h1 id="form-heading"><?= $activeTab === 'register' ? 'Join the Yarn Crew!' : 'Open the Doghouse' ?></h1>
+    <p class="lead" id="form-subtitle">
+      <?= $activeTab === 'register'
+        ? 'Register a staff account to record yarn sales and print receipts.'
+        : 'Log in with your staff account or register a new one below.' ?>
+    </p>
 
-    <?php if ($error): ?><p class="error"><?= e($error) ?></p><?php endif; ?>
+    <div class="auth-tabs" role="tablist" aria-label="Account access">
+      <button type="button" role="tab" aria-selected="<?= $activeTab === 'login' ? 'true' : 'false' ?>"
+              class="auth-tab-btn <?= $activeTab === 'login' ? 'active' : '' ?>"
+              onclick="switchAuthTab('login')">
+        🔑 Log In
+      </button>
+      <button type="button" role="tab" aria-selected="<?= $activeTab === 'register' ? 'true' : 'false' ?>"
+              class="auth-tab-btn <?= $activeTab === 'register' ? 'active' : '' ?>"
+              onclick="switchAuthTab('register')">
+        🐾 Register
+      </button>
+    </div>
 
-    <form action="index.php" method="POST">
+    <?php if ($error !== ''): ?>
+      <div class="error" role="alert">⚠️ <?= e($error) ?></div>
+    <?php endif; ?>
+
+    <!-- LOGIN FORM -->
+    <form id="login-form" method="POST" action="index.php" class="<?= $activeTab === 'login' ? '' : 'is-hidden' ?>">
+      <input type="hidden" name="action" value="login">
+
+      <label for="login-username">Username
+        <input type="text" id="login-username" name="username" placeholder="e.g. charlie_brown" required
+               value="<?= e($_POST['username'] ?? '') ?>">
+      </label>
+
+      <label for="login-password">Password
+        <div class="password-wrap">
+          <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
+          <button type="button" class="toggle-pw" onclick="togglePassword('login-password', this)" aria-label="Show password">Show</button>
+        </div>
+      </label>
+
+      <button type="submit" class="btn btn-red">Log In</button>
+      <p class="auth-switch-hint">Don’t have a staff account yet? <button type="button" class="link-btn" onclick="switchAuthTab('register')">Register here</button></p>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="register-form" method="POST" action="index.php" class="<?= $activeTab === 'register' ? '' : 'is-hidden' ?>">
+      <input type="hidden" name="action" value="register">
+
+      <label for="reg-fullname">Full Name
+        <input type="text" id="reg-fullname" name="full_name" placeholder="e.g. Charlie Brown" required
+               value="<?= e($_POST['full_name'] ?? '') ?>">
+      </label>
+
+      <label for="reg-username">Username
+        <input type="text" id="reg-username" name="username" placeholder="Choose a unique username" required
+               value="<?= e($_POST['username'] ?? '') ?>">
+      </label>
+
       <div class="row">
-        <label>First name<input type="text" name="First_name" placeholder="Charlie" required></label>
-        <label>Last name<input type="text" name="Last_name" placeholder="Brown" required></label>
+        <label for="reg-password">Password
+          <div class="password-wrap">
+            <input type="password" id="reg-password" name="password" placeholder="Min. 6 chars" minlength="6" required>
+            <button type="button" class="toggle-pw" onclick="togglePassword('reg-password', this)" aria-label="Show password">Show</button>
+          </div>
+        </label>
+
+        <label for="reg-confirm">Confirm Password
+          <div class="password-wrap">
+            <input type="password" id="reg-confirm" name="confirm_password" placeholder="Repeat password" minlength="6" required>
+            
+          </div>
+        </label>
       </div>
-      <label>Middle name (optional)<input type="text" name="Middle_name" placeholder="Optional"></label>
-      <label>Email address<input type="email" name="email" placeholder="charlie@peanuts.com" required></label>
-      <label>Password<input type="password" name="password" placeholder="Min. 6 characters" required minlength="6"></label>
-      <button type="submit" class="btn btn-red">Enter Sales Tracker →</button>
+
+      <button type="submit" class="btn btn-yellow btn-full">Create Account</button>
+      <p class="auth-switch-hint">Already registered? <button type="button" class="link-btn" onclick="switchAuthTab('login')">Log in instead</button></p>
     </form>
   </div>
 </section>
+
+<script>
+function switchAuthTab(tab) {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const buttons = document.querySelectorAll('.auth-tab-btn');
+  const heading = document.getElementById('form-heading');
+  const subtitle = document.getElementById('form-subtitle');
+  const quote = document.getElementById('snoopy-quote');
+
+  if (tab === 'login') {
+    loginForm.classList.remove('is-hidden');
+    registerForm.classList.add('is-hidden');
+    buttons[0].classList.add('active');
+    buttons[0].setAttribute('aria-selected', 'true');
+    buttons[1].classList.remove('active');
+    buttons[1].setAttribute('aria-selected', 'false');
+    heading.textContent = 'Open the Doghouse';
+    subtitle.textContent = 'Log in with your staff account or register a new one below.';
+    if (quote) quote.textContent = '“Every great sweater starts with one skein—and a neat sales receipt!”';
+  } else {
+    loginForm.classList.add('is-hidden');
+    registerForm.classList.remove('is-hidden');
+    buttons[0].classList.remove('active');
+    buttons[0].setAttribute('aria-selected', 'false');
+    buttons[1].classList.add('active');
+    buttons[1].setAttribute('aria-selected', 'true');
+    heading.textContent = 'Join the Yarn Crew!';
+    subtitle.textContent = 'Register a staff account to record yarn sales and print receipts.';
+    if (quote) quote.textContent = '“New to the shop? Grab a skein and register your staff badge!”';
+  }
+}
+
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = 'Hide';
+  } else {
+    input.type = 'password';
+    btn.textContent = 'Show';
+  }
+}
+</script>
 <?php page_bottom(); ?>
