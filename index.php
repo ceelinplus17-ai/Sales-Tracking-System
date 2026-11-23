@@ -131,7 +131,7 @@ page_top('Sign In & Register', false);
 
   <!-- Right Comic Panel: Log In / Register Forms -->
   <div class="auth-form-box">
-    <div class="doghouse-roof-badge">🏠 SNOOPY'S HOUSE</div>
+    <div class="doghouse-roof-badge"> SNOOPY'S HOUSE</div>
     <h1 id="form-heading"><?= $activeTab === 'register' ? 'Join the Yarn Crew!' : 'Open the Doghouse' ?></h1>
     <p class="lead" id="form-subtitle">
       <?= $activeTab === 'register'
